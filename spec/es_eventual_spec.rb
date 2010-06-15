@@ -1,9 +1,9 @@
 require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
-require 'eventual/es'
+require 'eventual'
 
 describe Eventual, 'Es' do
   before do
-    @parser = Eventual::Es::EventParser.new
+    @parser = EsDatesParser.new
     Date.stub!(:today).and_return Date.civil(2010)
   end
 
@@ -311,7 +311,7 @@ describe Eventual, 'Es' do
     end
     it_should_behave_like 'correctly parses'
   end
-
+  
   describe 'with time constrain' do
     shared_examples_for 'outputs DateTime' do
       it "should all be DateTime" do
@@ -398,7 +398,7 @@ describe Eventual, 'Es' do
   describe 'Marshal dump' do
     describe "month without year parsing 'marzo'" do
       before do
-        @result = Marshal.load Marshal.dump(@parser.parse('marzo'))
+        @result = Marshal.load Marshal.dump(@parser.parse('marzo')).gsub('NaturalDates::', 'NaturalDates::Eventual::Es::')
         @dates  = (Date.parse('2010-3-1')..Date.parse('2010-3-31')).map
       end
       it_should_behave_like 'correctly parses'

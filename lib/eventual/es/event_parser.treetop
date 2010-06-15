@@ -1,4 +1,4 @@
-grammar Event
+grammar EsDates
   rule root
     (date_list / dates) year? times? <Eventual::Node>
   end
