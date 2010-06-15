@@ -152,9 +152,9 @@ module Eventual
       array = []
       range.each do |date|
         next unless date_within_weekdays? date
-        array.push block_given? ? yield(date) : date
-        next unless times
-        times[1..-1].each do |time|
+        next array.push(block_given? ? yield(date) : date) unless times
+        
+        times.each do |time|
           new_date = DateTime.civil date.year, date.month, date.day, time.hour, time.minute
           array.push block_given? ? yield(new_date) : new_date
         end
@@ -202,10 +202,16 @@ module Eventual
     attr_accessor :hour, :minute
     def value
       @hour, @minute = text_value.scan(/\d+/).map(&:to_i)
+      @minute ||= 0
       self
     end
   end
 
   class Time12 < Time
+    def value
+      super
+      @hour += 12 if period.text_value.gsub(/[^a-z]/, '') == 'pm'
+      self
+    end
   end
 end

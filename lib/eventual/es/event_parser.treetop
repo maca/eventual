@@ -1,0 +1,83 @@
+grammar Event
+  rule root
+    (date_list / dates) year? times? <Eventual::Node>
+  end
+
+  rule dates
+    (period / date)
+  end
+  
+  rule period
+    weekdays_constrain? (range / month)
+  end
+  
+  rule date
+    weekday_constrain? day_number month_name?
+  end
+  
+  rule date_list
+    dates (',' space dates)* (space 'y' space dates)
+  end
+  
+  rule range
+    (('del' / 'de' / ',') space)? (month / date) year? space ('al' / 'a') space (month / date) <Eventual::DatePeriod>
+  end
+
+  rule month
+    month_name '' <Eventual::MonthPeriod>
+  end
+  
+  rule day_number
+    ([0-2] [0-9] / '3' [0-1] / [1-9]) '' <Eventual::Day>
+  end
+  
+  ##########
+  rule times
+    space 'a' space ('las' / 'la') (time_12 / time_24) ((space 'y' / ',') (time_12 / time_24))* <Eventual::Times>
+  end
+  
+  rule time_24
+    space ([0-1] [0-9] / '2' [0-4] / [0-9]) (':' [0-5] [0-9])? (space? ('hrs.' / 'hrs' / 'horas'))? <Eventual::Time>
+  end
+  
+  rule time_12
+    space ('0' [0-9] / '1' [0-2] / [0-9]) (':' [0-5] [0-9])?  space? period:(('a'/'p') '.'? space? 'm' '.'? space?) <Eventual::Time12>
+  end
+
+  ##########
+  rule month_name
+    (((space 'de') / ',')? space)? ('enero' / 'febrero' / 'marzo' / 'abril' / 'mayo' / 'junio' / 'julio' / 'agosto' / 'septiembre' / 'octubre' / 'noviembre' / 'diciembre') <Eventual::MonthName>
+  end
+   
+  rule year
+    ((space 'de' 'l'?) / ',')? space ([1-9] [0-9] [0-9] [0-9] / "'" [0-9] [0-9]) <Eventual::Year>
+  end
+  
+  rule weekdays_constrain
+    wdays_node:(weekday_list / weekdays / weekday) (',' / (space ('del' / 'de' / 'durante todo' / 'durante')))? space <Eventual::WeekdayConstrain>
+  end
+  
+  rule weekday_constrain
+    wdays_node:weekday space <Eventual::WeekdayConstrain>
+  end
+  
+  rule weekday_list
+    (weekday_constrain_sugar? weekday (',' space weekday_constrain_sugar? weekday)* (space 'y' space weekday_constrain_sugar? weekday)?)
+  end
+  
+  rule weekdays
+    weekday_constrain_sugar? ((('dias' space)? 'entre' space 'semana') / 'fines' space 'de' space 'semana')
+  end
+  
+  rule weekday_constrain_sugar
+    (('todos' space)? 'los' space)
+  end
+
+  rule weekday
+    (('lun' 'es'? ) / ('mar' 'tes'? ) / ('mi' 'ercoles'? ) / ('jue' 'ves'? ) / ('vie' 'rnes'? ) / ('sab' 'ado'? 's'? ) / ('dom' 'ingo'? 's'? ))
+  end
+   
+  rule space
+    ' '+
+  end
+end

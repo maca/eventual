@@ -1,8 +1,9 @@
 require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
+require 'eventual/es'
 
 describe Eventual, 'Es' do
   before do
-    @parser = EsParser.new
+    @parser = Eventual::Es::EventParser.new
     Date.stub!(:today).and_return Date.civil(2010)
   end
 
@@ -312,12 +313,19 @@ describe Eventual, 'Es' do
   end
 
   describe 'with time constrain' do
+    shared_examples_for 'outputs DateTime' do
+      it "should all be DateTime" do
+        @result.map{ |d| d.should be_a(DateTime) }
+      end
+    end
+    
     describe 'single time with no sugar for month range' do
       before do
         @result = @parser.parse('lunes y martes de diciembre a las 15:00')
         @dates  = (DateTime.parse('2010-12-1T15:00')..DateTime.parse('2010-12-31T15:00')).reject{ |day| not [1,2].include?(day.wday) }
       end
       it_should_behave_like 'correctly parses'
+      it_should_behave_like 'outputs DateTime'
     end
     
     describe 'single time with sugar 1 for month range' do
@@ -326,6 +334,7 @@ describe Eventual, 'Es' do
         @dates  = (DateTime.parse('2010-12-1T15:00')..DateTime.parse('2010-12-31T15:00')).reject{ |day| not [1,2].include?(day.wday) }
       end
       it_should_behave_like 'correctly parses'
+      it_should_behave_like 'outputs DateTime'
     end
     
     describe 'single time with sugar 2 for month range' do
@@ -334,14 +343,16 @@ describe Eventual, 'Es' do
         @dates  = (DateTime.parse('2010-12-1T15:00')..DateTime.parse('2010-12-31T15:00')).reject{ |day| not [1,2].include?(day.wday) }
       end
       it_should_behave_like 'correctly parses'
+      it_should_behave_like 'outputs DateTime'
     end
     
     describe 'single time with sugar 3 for month range' do
       before do
-        @result = @parser.parse('lunes y martes de diciembre a las 15:00 horas')
+        @result = @parser.parse('lunes y martes de diciembre a las 15 horas')
         @dates  = (DateTime.parse('2010-12-1T15:00')..DateTime.parse('2010-12-31T15:00')).reject{ |day| not [1,2].include?(day.wday) }
       end
       it_should_behave_like 'correctly parses'
+      it_should_behave_like 'outputs DateTime'
     end
     
     describe 'two times for month range' do
@@ -350,6 +361,33 @@ describe Eventual, 'Es' do
         @dates  = ((DateTime.parse('2010-12-1T15:00')..DateTime.parse('2010-12-31T15:00')).map + (DateTime.parse('2010-12-1T16:00')..DateTime.parse('2010-12-31T16:00')).map).reject{ |day| not [1,2].include?(day.wday) }
       end
       it_should_behave_like 'correctly parses'
+      it_should_behave_like 'outputs DateTime'
+      
+      it "should not include other time" do
+        @result.should_not include(DateTime.parse('2010-12-06T14:00'))
+      end
+    end
+    
+    describe 'range with time as 12 hours am' do
+      before do
+        @result = @parser.parse('lunes y martes de diciembre a las 3 am')
+        @dates  = ((DateTime.parse('2010-12-1T03:00')..DateTime.parse('2010-12-31T03:00')).map).reject{ |day| not [1,2].include?(day.wday) }
+      end
+      it_should_behave_like 'correctly parses'
+      it_should_behave_like 'outputs DateTime'
+      
+      it "should not include other time" do
+        @result.should_not include(DateTime.parse('2010-12-06T14:00'))
+      end
+    end
+    
+    describe 'range with time as 12 hours pm' do
+      before do
+        @result = @parser.parse('lunes y martes de diciembre a las 3:00 pm')
+        @dates  = ((DateTime.parse('2010-12-1T15:00')..DateTime.parse('2010-12-31T15:00')).map).reject{ |day| not [1,2].include?(day.wday) }
+      end
+      it_should_behave_like 'correctly parses'
+      it_should_behave_like 'outputs DateTime'
       
       it "should not include other time" do
         @result.should_not include(DateTime.parse('2010-12-06T14:00'))
@@ -362,6 +400,17 @@ describe Eventual, 'Es' do
       before do
         @result = Marshal.load Marshal.dump(@parser.parse('marzo'))
         @dates  = (Date.parse('2010-3-1')..Date.parse('2010-3-31')).map
+      end
+      it_should_behave_like 'correctly parses'
+    end
+  end
+  
+  describe 'Default year' do
+    describe "month without year parsing 'marzo'" do
+      before do
+        @result      = @parser.parse('marzo')
+        @result.year = 2007
+        @dates       = (Date.parse('2007-3-1')..Date.parse('2007-3-31')).map
       end
       it_should_behave_like 'correctly parses'
     end
