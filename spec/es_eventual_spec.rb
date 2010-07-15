@@ -1,4 +1,4 @@
-require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
+require "#{File.dirname __FILE__}/spec_helper"
 require 'eventual'
 
 describe Eventual, 'Es' do
@@ -312,6 +312,14 @@ describe Eventual, 'Es' do
     it_should_behave_like 'correctly parses'
   end
   
+  describe 'compound dates in different lines' do
+    before do
+      @result = @parser.parse "1 de enero\nlunes y martes del 1 de octubre al 2 de diciembre del 2008"
+      @dates  = [Date.parse('2008-1-1')] + (Date.parse('2008-10-1')..Date.parse('2008-12-2')).reject{ |day| not [1,2].include?(day.wday) }
+    end
+    it_should_behave_like 'correctly parses'
+  end
+  
   describe 'with time constrain' do
     shared_examples_for 'outputs DateTime' do
       it "should all be DateTime" do
@@ -319,9 +327,18 @@ describe Eventual, 'Es' do
       end
     end
     
+    describe 'single day with time' do
+      before do
+        @result = @parser.parse('1 de enero del 2010 a las 15:00')
+        @dates  = [DateTime.civil 2010, 1, 1, 15]
+      end
+      it_should_behave_like 'correctly parses'
+      it_should_behave_like 'outputs DateTime'
+    end
+    
     describe 'single time with no sugar for month range' do
       before do
-        @result = @parser.parse('lunes y martes de diciembre a las 15:00')
+        @result = @parser.parse('lunes y martes de diciembre del 2010 a las 15:00')
         @dates  = (DateTime.parse('2010-12-1T15:00')..DateTime.parse('2010-12-31T15:00')).reject{ |day| not [1,2].include?(day.wday) }
       end
       it_should_behave_like 'correctly parses'

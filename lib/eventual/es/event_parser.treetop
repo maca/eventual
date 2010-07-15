@@ -16,7 +16,7 @@ grammar EsDates
   end
   
   rule date_list
-    dates (',' space dates)* (space 'y' space dates)
+    dates (',' space dates)* (space 'y' space dates) / dates (space? "\n" space? dates)*
   end
   
   rule range

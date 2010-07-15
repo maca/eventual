@@ -125,9 +125,9 @@ module Eventual
 
   class Day < Node
     def map &block
-      date = Date.civil(year, month, text_value.to_i)
-      raise WdayMatchError.new(date, weekdays.first) unless date_within_weekdays? date
-      [date].map(&block)
+      dates = times ? times.map{ |time| DateTime.civil year, month, text_value.to_i, time.hour, time.minute } : [Date.civil(year, month, text_value.to_i)]
+      raise WdayMatchError.new(dates.first, weekdays.first) unless date_within_weekdays? dates.first
+      dates.map(&block)
     end
     
     def include? date
