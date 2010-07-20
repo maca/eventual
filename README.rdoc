@@ -14,59 +14,57 @@ Ejemplos:
   require 'rubygems'
   require 'eventual' 
 
-  EsDatesParser.new.parse( 'del 5 al 7 de junio del 2009' ).map
+  Eventual.parse( 'del 5 al 7 de junio del 2009' ).map
   => [#<DateTime: 4909975/2,0,2299161>, #<DateTime: 4909977/2,0,2299161>, #<DateTime: 4909979/2,0,2299161>]
   
   # Si no se especifica el año se usará el año actual
-  EsDatesParser.new.parse( 'del 5 al 7 de junio' ).map{ |d| d.to_s } # Quizá mas tarde se localize a otros idiomas
+  Eventual.parse( 'del 5 al 7 de junio' ).map{ |d| d.to_s } # Quizá mas tarde se localize a otros idiomas
   => ["2010-06-05", "2010-06-06", "2010-06-07"]
   
   # Se puede especificar un año por omisión
-  dates      = EsDatesParser.new.parse( 'del 5 al 7 de junio' )
-  dates.year = 2007
+  dates      = Eventual.parse( 'del 5 al 7 de junio', :default_year => 2007 )
   dates.map{ |d| d.to_s }
   => ["2007-06-05", "2007-06-06", "2007-06-07"]
   
   # Si se especifica la hora el resultado será un Array de DateTime
-  EsDatesParser.new.parse( 'del 5 al 7 de junio del 2009 a las 16:00 y 18:00 horas' ).map
+  Eventual.parse( 'del 5 al 7 de junio del 2009 a las 16:00 y 18:00 horas', :lang => :es ).map
   => [#<DateTime: 14729929/6,0,2299161>, #<DateTime: 9819953/4,0,2299161>, #<DateTime: 14729935/6,0,2299161>, #<DateTime: 9819957/4,0,2299161>, #<DateTime: 14729941/6,0,2299161>, #<DateTime: 9819961/4,0,2299161>]
   
-  EsDatesParser.new.parse( 'del 5 al 7 de junio del 2009 a las 16:00 y 18:00 horas' ).map{ |d| d.to_s }
+  Eventual.parse( 'del 5 al 7 de junio del 2009 a las 16:00 y 18:00 horas' ).map{ |d| d.to_s }
   => ["2009-06-05T16:00:00+00:00", "2009-06-05T18:00:00+00:00", "2009-06-06T16:00:00+00:00", "2009-06-06T18:00:00+00:00", "2009-06-07T16:00:00+00:00", "2009-06-07T18:00:00+00:00"]
   
   # Se pueden restringir los resultados a ciertos dias
-  EsDatesParser.new.parse('lunes y martes de diciembre del 2001 a las 15:00').map{ |d| d.to_s  }  
+  Eventual.parse('lunes y martes de diciembre del 2001 a las 15:00').map{ |d| d.to_s  }  
   => ["2010-12-06T15:00:00+00:00", "2010-12-07T15:00:00+00:00", "2010-12-13T15:00:00+00:00", "2010-12-14T15:00:00+00:00", "2010-12-20T15:00:00+00:00", "2010-12-21T15:00:00+00:00", "2010-12-27T15:00:00+00:00", "2010-12-28T15:00:00+00:00"]
   
   # Se puede checar si las fechas reconocidas incluyen cierta fecha, la comparación es "perezosa" es decir no instancia todos los objetos Date o DateTime 
   # como hace map y por lo tanto es mas eficiente
-  EsDatesParser.new.parse( 'del 5 al 7 de junio del 2007' ).include? Date.civil(2007, 6, 6)
+  Eventual.parse( 'del 5 al 7 de junio del 2007' ).include? Date.civil(2007, 6, 6)
   => true
   
-  EsDatesParser.new.parse( 'del 5 al 7 de junio del 2007' ).include? Date.civil(2006, 6, 6)
+  Eventual.parse( 'del 5 al 7 de junio del 2007' ).include? Date.civil(2006, 6, 6)
   => false
   
   # Se toma en cuenta la hora
-  EsDatesParser.new.parse( 'del 5 al 7 de junio del 2007 a las 16:00' ).include? DateTime.civil(2007, 6, 6, 16, 0)
+  Eventual.parse( 'del 5 al 7 de junio del 2007 a las 16:00' ).include? DateTime.civil(2007, 6, 6, 16, 0)
   => true
   
-  EsDatesParser.new.parse( 'del 5 al 7 de junio del 2007 a las 16:00' ).include? DateTime.civil(2007, 6, 6, 15, 0)
+  Eventual.parse( 'del 5 al 7 de junio del 2007 a las 16:00' ).include? DateTime.civil(2007, 6, 6, 15, 0)
   => false
   
   # Si se pasa un Date que corresponda al periodo la comparación es positiva
-  EsDatesParser.new.parse( 'del 5 al 7 de junio del 2007 a las 16:00' ).include? Date.civil(2007, 6, 6)
+  Eventual.parse( 'del 5 al 7 de junio del 2007 a las 16:00' ).include? Date.civil(2007, 6, 6)
   => true
   
   # El evento tiene una duración por omisión de 60 minutos
-  EsDatesParser.new.parse( 'del 5 al 7 de junio del 2007 a las 16:00' ).include? DateTime.civil(2007, 6, 6, 16, 59)
+  Eventual.parse( 'del 5 al 7 de junio del 2007 a las 16:00' ).include? DateTime.civil(2007, 6, 6, 16, 59)
   => true
   
-  EsDatesParser.new.parse( 'del 5 al 7 de junio del 2007 a las 16:00' ).include? DateTime.civil(2007, 6, 6, 17, 00)
+  Eventual.parse( 'del 5 al 7 de junio del 2007 a las 16:00' ).include? DateTime.civil(2007, 6, 6, 17, 00)
   => false
   
   # Pero se puede cambiar
-  dates           = EsDatesParser.new.parse( 'del 5 al 7 de junio del 2007 a las 16:00' )
-  dates.time_span = 120
+  dates           = Eventual.parse( 'del 5 al 7 de junio del 2007 a las 16:00', :default_event_span => 120)
   dates.include? DateTime.civil(2007, 6, 6, 17, 00)
   => true
   
