@@ -118,7 +118,7 @@ Formatos a reconocer
   
 == Documentation
 
-[Eventual Rdoc](http://rdoc.info/projects/maca/eventual/blob/c841d96597260702ae15ce633549edf06e9cb586)
+http://rdoc.info/projects/maca/eventual
 
 == LICENCIA:
 
