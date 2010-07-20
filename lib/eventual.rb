@@ -26,11 +26,9 @@ module Eventual
     raise ArgumentError, "Expected option `:default_year` to be an integer"        if year && !(Integer === year)
     raise ArgumentError, "Expected option `:default_event_span` to be an integer"  if span && !(Integer === span)
     
-    results = const_get("#{ lang.to_s[0..1].capitalize }DatesParser").new.parse(text)
-    
-    results.year      = year if year
-    results.time_span = span if span
-    
-    results
+    node = const_get("#{ lang.to_s[0..1].capitalize }DatesParser").new.parse(text)
+    node.year      = year if year
+    node.time_span = span if span
+    node
   end
 end

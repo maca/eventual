@@ -4,8 +4,8 @@ module Eventual
   ShortMonthNames = %w(ene feb mar abr may jun jul ago sept oct nov dic).freeze
   WdaysR          = [/d/, /l/, /ma/, /mi/, /j/, /v/, /s/].freeze
   WdayListR       = /\b(?:#{ WdaysR.join('|') })/.freeze
-  # :nodoc: 
-  class WdayMatchError < StandardError
+
+  class WdayMatchError < StandardError #:nodoc:
     def initialize value, wday_index
       @value, @wday_index = value, wday_index
     end
@@ -14,8 +14,8 @@ module Eventual
       "El #{@value.day} de #{MonthNames[@value.month]} del #{@value.year} cae en #{Weekdays[@value.wday]} no #{Weekdays[@wday_index]}"
     end
   end
-  # :nodoc: 
-  class Year < Treetop::Runtime::SyntaxNode
+
+  class Year < Treetop::Runtime::SyntaxNode #:nodoc:
     def value
       match  = text_value.match(/(')?(\d{2,4})/)
       value  = match[2].to_i
@@ -23,8 +23,8 @@ module Eventual
       value
     end
   end
-  # :nodoc: 
-  class WeekdayConstrain < Treetop::Runtime::SyntaxNode
+
+  class WeekdayConstrain < Treetop::Runtime::SyntaxNode #:nodoc:
     def value
       text    = wdays_node.text_value.sub('semana', '')
       days    = text.scan(WdayListR).map{ |d| WdaysR.index /#{d}/ }
@@ -33,8 +33,8 @@ module Eventual
       days.uniq
     end
   end
-  # :nodoc: 
-  class MonthName < Treetop::Runtime::SyntaxNode
+
+  class MonthName < Treetop::Runtime::SyntaxNode #:nodoc:
     def value
       ShortMonthNames.index(text_value.downcase.match(/#{ ShortMonthNames.join('|') }/).to_s) + 1
     end
@@ -128,8 +128,7 @@ module Eventual
     end
   end
 
-  # :nodoc: 
-  class Day < Node
+  class Day < Node #:nodoc:
     def map &block
       dates = times ? times.map{ |time| DateTime.civil year, month, text_value.to_i, time.hour, time.minute } : [Date.civil(year, month, text_value.to_i)]
       raise WdayMatchError.new(dates.first, weekdays.first) unless date_within_weekdays? dates.first
@@ -140,8 +139,8 @@ module Eventual
       to_a.include? date
     end
   end
-  # :nodoc: 
-  class Period < Node
+
+  class Period < Node #:nodoc:
     def range
       (first..last)
     end
@@ -168,8 +167,8 @@ module Eventual
       array
     end
   end
-  # :nodoc: 
-  class MonthPeriod < Period
+
+  class MonthPeriod < Period #:nodoc:
     def first
       return Date.civil(year, month_name.value) unless times and !times.empty?
       time = times.first
@@ -183,8 +182,8 @@ module Eventual
       DateTime.civil(date.year, date.month, date.day, time.hour, time.minute)
     end
   end
-  # :nodoc: 
-  class DatePeriod < Period
+
+  class DatePeriod < Period #:nodoc:
     def first
       node_map.first
     end
@@ -193,8 +192,8 @@ module Eventual
       node_map.last
     end
   end
-  # :nodoc: 
-  class Times < Treetop::Runtime::SyntaxNode
+
+  class Times < Treetop::Runtime::SyntaxNode #:nodoc:
     def map
       walk_times = lambda do |elements|
         break unless elements
@@ -203,8 +202,8 @@ module Eventual
       walk_times.call(elements).flatten.compact.sort_by{ |t| '%02d%02d' % [t.hour, t.minute] }
     end
   end
-  # :nodoc: 
-  class Time < Treetop::Runtime::SyntaxNode
+
+  class Time < Treetop::Runtime::SyntaxNode #:nodoc:
     attr_accessor :hour, :minute
     def value
       @hour, @minute = text_value.scan(/\d+/).map(&:to_i)
@@ -212,8 +211,8 @@ module Eventual
       self
     end
   end
-  # :nodoc: 
-  class Time12 < Time
+
+  class Time12 < Time #:nodoc:
     def value
       super
       @hour += 12 if period.text_value.gsub(/[^a-z]/, '') == 'pm'

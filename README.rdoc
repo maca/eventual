@@ -64,7 +64,7 @@ Ejemplos:
   => false
   
   # Pero se puede cambiar
-  dates           = Eventual.parse( 'del 5 al 7 de junio del 2007 a las 16:00', :default_event_span => 120)
+  dates = Eventual.parse( 'del 5 al 7 de junio del 2007 a las 16:00', :default_event_span => 120)
   dates.include? DateTime.civil(2007, 6, 6, 17, 00)
   => true
   
@@ -114,7 +114,11 @@ Formatos a reconocer
 
 == INSTALACIÓN:
 
-  [sudo] gem install eventual -s http://gemcutter.org
+  [sudo] gem install eventual
+  
+== Documentation
+
+[Eventual Rdoc](http://rdoc.info/projects/maca/eventual/blob/c841d96597260702ae15ce633549edf06e9cb586)
 
 == LICENCIA:
 
