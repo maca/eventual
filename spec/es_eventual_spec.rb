@@ -5,6 +5,12 @@ describe Eventual, 'Es' do
   before do
     Date.stub!(:today).and_return Date.civil(2010)
   end
+  
+  describe 'proxy' do
+    it "should raise NotImplementedError if using not implemented language" do
+      lambda { Eventual.parse 'marzo', :lang => 'WP' }.should raise_error(NotImplementedError)
+    end    
+  end
 
   shared_examples_for 'correctly parses' do
     it { @result.should_not be_nil }
@@ -407,6 +413,44 @@ describe Eventual, 'Es' do
       
       it "should not include other time" do
         @result.should_not include(DateTime.parse('2010-12-06T14:00'))
+      end
+    end
+  
+    describe 'event default timespan' do
+      before do
+        @result = Eventual.parse('1 de diciembre del 2010 a las 15:00')
+        @dates  = [DateTime.parse('2010-12-1T15:00')]
+      end
+      it_should_behave_like 'correctly parses'
+      it_should_behave_like 'outputs DateTime'
+      
+      it "should include time encompassed in 60 minutes from start" do
+        @result.should include(DateTime.civil(2010, 12, 1, 15, 30))
+      end
+      
+      it "should not include time past 60 minutes from start" do
+        @result.should_not include(DateTime.civil(2010, 12, 1, 16, 00))
+      end
+    end
+    
+    describe 'event defined timespan' do
+      before do
+        @result = Eventual.parse('1 de diciembre del 2010 a las 15:00', :default_event_span => 120)
+        @dates  = [DateTime.parse('2010-12-1T15:00')]
+      end
+      it_should_behave_like 'correctly parses'
+      it_should_behave_like 'outputs DateTime'
+      
+      it "should include time encompassed in 60 minutes from start" do
+        @result.should include(DateTime.civil(2010, 12, 1, 15, 30))
+      end
+      
+      it "should not include time past 60 minutes from start" do
+        @result.should include(DateTime.civil(2010, 12, 1, 16, 00))
+      end
+      
+      it "should not include time past 60 minutes from start" do
+        @result.should_not include(DateTime.civil(2010, 12, 1, 17, 00))
       end
     end
   end

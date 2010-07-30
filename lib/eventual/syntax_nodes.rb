@@ -65,7 +65,7 @@ module Eventual
     # Returns true if the weekday (as number) correspons to any allowed weekday
     def date_within_weekdays? date
       return true unless weekdays
-      weekdays.include?(date.wday)
+      weekdays.include? date.wday
     end
     
     # Invokes block once for each Date or DateTime. Creates a new array containing the values returned by the block.
@@ -79,13 +79,12 @@ module Eventual
       walk { |elements| break result = true if elements.include? date }
       
       unless date.class == Date or times.nil? or times.empty?
-        @time_span ||= 60
-        within_time = times.inject(nil) { |memo, time|
-          first = ::Time.local date.year, date.month, date.day, time.hour, time.minute
-          time  = ::Time.local date.year, date.month, date.day, date.hour, date.min
-          break true if time >= first and time < first + 60 * @time_span
+        @time_span  ||= 60
+        return false unless times.inject(nil){ |memo, time|
+          check_against = ::Time.local date.year, date.month, date.day, time.hour, time.minute
+          time          = ::Time.local date.year, date.month, date.day, date.hour, date.min
+          break true if time >= check_against && time < check_against + 60 * @time_span
         }
-        return false unless within_time
       end
       result
     end
@@ -136,7 +135,7 @@ module Eventual
     end
     
     def include? date
-      to_a.include? date
+      map{ |e| e.strftime("%Y-%m-%d") }.include? date.strftime("%Y-%m-%d")
     end
   end
 
@@ -210,6 +209,8 @@ module Eventual
       @minute ||= 0
       self
     end
+    
+
   end
 
   class Time12 < Time #:nodoc:
