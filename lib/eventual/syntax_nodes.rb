@@ -100,7 +100,7 @@ module Eventual
           when MonthName
             month = element.value
             next nil
-          when Times, TimeRange
+          when TimeList, TimeRange
             @times = element
             next nil
           else            
@@ -176,13 +176,13 @@ module Eventual
     end
   end
 
-  class Times < Treetop::Runtime::SyntaxNode #:nodoc:
+  class TimeList < Treetop::Runtime::SyntaxNode #:nodoc:
     def map
       walk_times = lambda do |elements|
         break unless elements
         elements.map do |element|
           next walk_times.call(element.elements) unless Time === element
-          block_given? ? yield(element.value) : element.value 
+          block_given? ? yield(element) : element
         end
       end
       walk_times.call(elements).flatten.compact
@@ -196,36 +196,34 @@ module Eventual
       map { |time| time.to_i }.include? date.strftime("%H%M").to_i
     end
   end
-
+  
   class Time < Treetop::Runtime::SyntaxNode #:nodoc:
-    attr_accessor :hour, :minute
     def value
-      @hour, @minute = text_value.scan(/\d+/).map(&:to_i)
-      @minute ||= 0
-      self
+      @value ||= text_value.scan(/\d+/).map(&:to_i)
     end
     
+    def hour; value.first end
+    def minute; value[1] || 0 end
+    
     def to_i
-      ("%02d%02d" % [@hour, @minute]).to_i
+      ("%02d%02d" % [hour, minute]).to_i
     end
   end
 
   class Time12 < Time #:nodoc:
-    def value
-      super
-      @hour += 12 if period.text_value.gsub(/[^a-z]/, '') == 'pm'
-      self
+    def pm?
+      @pm ||= true if period.text_value.include? 'pm'
+    end
+    
+    def hour
+      pm? ? super + 12 : super
     end
   end
 
-  class TimeRange < Node #:nodoc:
-    def value
-      (first.value..last.value)
-    end
-    
+  class TimeRange < Treetop::Runtime::SyntaxNode #:nodoc:
     def make year, month, day
-      first_time = DateTime.civil year, month, day, first.value.hour, first.value.minute
-      last_time  = DateTime.civil year, month, day, last.value.hour,  last.value.minute
+      first_time = DateTime.civil year, month, day, first.hour, first.minute
+      last_time  = DateTime.civil year, month, day, last.hour,  last.minute
       (first_time..last_time)
     end
     

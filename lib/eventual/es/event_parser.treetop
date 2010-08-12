@@ -37,7 +37,7 @@ grammar EsDates
   end
   
   rule time_list
-    space 'a' space ('las' / 'la') (time_12 / time_24) ((space 'y' / ',') (time_12 / time_24))* <Eventual::Times>
+    space 'a' space ('las' / 'la') (time_12 / time_24) ((space 'y' / ',') (time_12 / time_24))* <Eventual::TimeList>
   end
   
   rule time_24
