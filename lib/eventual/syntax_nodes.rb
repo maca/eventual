@@ -73,13 +73,8 @@ module Eventual
       walk { |elements| break result = true if elements.include? date }
       
       return result if !result or date.class == Date or times.nil?
-      
-      case times
-      when Range
-        (times.first.to_i..times.last.to_i).include? date.strftime("%H%M").to_i
-      else
-        times.include? date
-      end
+
+      times.include? date
     end
     
     private
@@ -105,11 +100,8 @@ module Eventual
           when MonthName
             month = element.value
             next nil
-          when Times
+          when Times, TimeRange
             @times = element
-            next nil
-          when TimeRange
-            @times = element.value
             next nil
           else            
             walk.call element.elements
@@ -120,16 +112,8 @@ module Eventual
     end
   
     def make year, month, day
-      case times
-      when nil
-        Date.civil year, month, day
-      when Range
-        first = DateTime.civil year, month, day, times.first.hour, times.first.minute
-        last  = DateTime.civil year, month, day, times.last.hour,  times.last.minute
-        (first..last)
-      else
-        times.make year, month, day
-      end
+      return Date.civil(year, month, day) unless times
+      times.make year, month, day
     end
   end
 
@@ -237,6 +221,16 @@ module Eventual
   class TimeRange < Node #:nodoc:
     def value
       (first.value..last.value)
+    end
+    
+    def make year, month, day
+      first_time = DateTime.civil year, month, day, first.value.hour, first.value.minute
+      last_time  = DateTime.civil year, month, day, last.value.hour,  last.value.minute
+      (first_time..last_time)
+    end
+    
+    def include? date
+      (first.to_i..last.to_i).include? date.strftime("%H%M").to_i
     end
   end
 end
