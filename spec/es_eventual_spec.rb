@@ -9,7 +9,7 @@ describe Eventual, 'Es' do
   describe 'proxy' do
     it "should raise NotImplementedError if using not implemented language" do
       lambda { Eventual.parse 'marzo', :lang => 'WP' }.should raise_error(NotImplementedError)
-    end    
+    end
   end
 
   shared_examples_for 'correctly parses' do

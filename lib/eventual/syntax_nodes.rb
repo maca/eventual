@@ -78,7 +78,7 @@ module Eventual
       when Range
         (times.first.to_i..times.last.to_i).include? date.strftime("%H%M").to_i
       else
-        times.map{ |time| time.to_i }.include? date.strftime("%H%M").to_i
+        times.include? date
       end
     end
     
@@ -106,7 +106,7 @@ module Eventual
             month = element.value
             next nil
           when Times
-            @times = element.map
+            @times = element
             next nil
           when TimeRange
             @times = element.value
@@ -128,9 +128,7 @@ module Eventual
         last  = DateTime.civil year, month, day, times.last.hour,  times.last.minute
         (first..last)
       else
-        times.map do |time| 
-          DateTime.civil year, month, day, time.hour, time.minute
-        end
+        times.make year, month, day
       end
     end
   end
@@ -198,9 +196,20 @@ module Eventual
     def map
       walk_times = lambda do |elements|
         break unless elements
-        elements.map { |e| Time === e ? e.value : walk_times.call(e.elements) }
+        elements.map do |element|
+          next walk_times.call(element.elements) unless Time === element
+          block_given? ? yield(element.value) : element.value 
+        end
       end
-      walk_times.call(elements).flatten.compact.sort_by{ |t| '%02d%02d' % [t.hour, t.minute] }
+      walk_times.call(elements).flatten.compact
+    end
+    
+    def make year, month, day
+      map { |time| DateTime.civil year, month, day, time.hour, time.minute }.sort
+    end
+    
+    def include? date
+      map { |time| time.to_i }.include? date.strftime("%H%M").to_i
     end
   end
 
