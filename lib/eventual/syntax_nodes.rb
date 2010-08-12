@@ -6,12 +6,12 @@ module Eventual
   WdayListR       = /\b(?:#{ WdaysR.join('|') })/.freeze
 
   class WdayMatchError < StandardError #:nodoc:
-    def initialize value, wday_index
-      @value, @wday_index = value, wday_index
+    def initialize value
+      @value
     end
     
     def to_s
-      "El #{@value.day} de #{MonthNames[@value.month]} del #{@value.year} cae en #{Weekdays[@value.wday]} no #{Weekdays[@wday_index]}"
+      "El #{@value.day} de #{MonthNames[@value.month]} del #{@value.year} cae en #{Weekdays[@value.wday]}"
     end
   end
 
@@ -48,19 +48,13 @@ module Eventual
     attr_accessor :times
     
     # Returns last Date or DateTime of the encompassed period
-    def last
-      to_a.last
-    end
+    def last; to_a.last end
     
     # Returns last Date or DateTime of the encompassed period
-    def first
-      to_a.first
-    end
+    def first; to_a.first end
     
     # Returns an array with all the encompassed Dates or DateTimes
-    def to_a
-      map
-    end
+    def to_a; map end
     
     # Returns true if the weekday (as number) correspons to any allowed weekday
     def date_within_weekdays? date
@@ -78,15 +72,14 @@ module Eventual
       result = false
       walk { |elements| break result = true if elements.include? date }
       
-      unless date.class == Date or times.nil? or times.empty?
-        @time_span  ||= 60
-        return false unless times.inject(nil){ |memo, time|
-          check_against = ::Time.local date.year, date.month, date.day, time.hour, time.minute
-          time          = ::Time.local date.year, date.month, date.day, date.hour, date.min
-          break true if time >= check_against && time < check_against + 60 * @time_span
-        }
+      return result if !result or date.class == Date or times.nil?
+      
+      case times
+      when Range
+        (times.first.to_i..times.last.to_i).include? date.strftime("%H%M").to_i
+      else
+        times.map{ |time| time.to_i }.include? date.strftime("%H%M").to_i
       end
-      result
     end
     
     private
@@ -96,7 +89,7 @@ module Eventual
           
       walk  = lambda do |elements|
         break unless elements
-        weekdays = elements.first.value if elements.first.class == WeekdayConstrain
+        weekdays = elements.shift.value if WeekdayConstrain === elements.first
         
         elements.reverse.map do |element|
           case element
@@ -105,7 +98,6 @@ module Eventual
             element.year     = year
             element.month    = month
             element.times    = @times
-            
             yield element
           when Year
             year  = element.value
@@ -113,29 +105,50 @@ module Eventual
           when MonthName
             month = element.value
             next nil
-          when WeekdayConstrain
-            next nil
           when Times
             @times = element.map
             next nil
-          else
+          when TimeRange
+            @times = element.value
+            next nil
+          else            
             walk.call element.elements
           end
         end.reverse
       end
       walk.call(elements).flatten.compact
     end
+  
+    def make year, month, day
+      case times
+      when nil
+        Date.civil year, month, day
+      when Range
+        first = DateTime.civil year, month, day, times.first.hour, times.first.minute
+        last  = DateTime.civil year, month, day, times.last.hour,  times.last.minute
+        (first..last)
+      else
+        times.map do |time| 
+          DateTime.civil year, month, day, time.hour, time.minute
+        end
+      end
+    end
   end
 
   class Day < Node #:nodoc:
+    def value
+      Date.civil year, month, text_value.to_i
+    end
+    
     def map &block
-      dates = times ? times.map{ |time| DateTime.civil year, month, text_value.to_i, time.hour, time.minute } : [Date.civil(year, month, text_value.to_i)]
-      raise WdayMatchError.new(dates.first, weekdays.first) unless date_within_weekdays? dates.first
-      dates.map(&block)
+      dates = make(year, month, text_value.to_i)
+      dates = [dates] unless Array === dates
+      raise WdayMatchError.new(dates.first) unless date_within_weekdays? dates.first
+      dates.map &block
     end
     
     def include? date
-      map{ |e| e.strftime("%Y-%m-%d") }.include? date.strftime("%Y-%m-%d")
+      map { |element| [*element].map{ |e| e.strftime("%Y-%m-%d") } }.flatten.include? date.strftime("%Y-%m-%d")
     end
   end
 
@@ -152,33 +165,22 @@ module Eventual
     alias node_map map
     private :node_map
     
-    def map
-      array = []
-      range.each do |date|
+    def map &block
+      range.map do |date|
         next unless date_within_weekdays? date
-        next array.push(block_given? ? yield(date) : date) unless times
-        
-        times.each do |time|
-          new_date = DateTime.civil date.year, date.month, date.day, time.hour, time.minute
-          array.push block_given? ? yield(new_date) : new_date
-        end
+        dates = times ? make(date.year, date.month, date.day) : [date]
+        dates.map &block
       end
-      array
     end
   end
 
   class MonthPeriod < Period #:nodoc:
     def first
-      return Date.civil(year, month_name.value) unless times and !times.empty?
-      time = times.first
-      return DateTime.civil(year, month_name.value, 1, time.hour, time.minute)
+      Date.civil year, month_name.value
     end
-    
+
     def last
-      date = (first >> 1) - 1
-      return date unless times and !times.empty?
-      time = times.last
-      DateTime.civil(date.year, date.month, date.day, time.hour, time.minute)
+      Date.civil year, month_name.value, -1
     end
   end
 
@@ -210,7 +212,9 @@ module Eventual
       self
     end
     
-
+    def to_i
+      ("%02d%02d" % [@hour, @minute]).to_i
+    end
   end
 
   class Time12 < Time #:nodoc:
@@ -218,6 +222,12 @@ module Eventual
       super
       @hour += 12 if period.text_value.gsub(/[^a-z]/, '') == 'pm'
       self
+    end
+  end
+
+  class TimeRange < Node #:nodoc:
+    def value
+      (first.value..last.value)
     end
   end
 end

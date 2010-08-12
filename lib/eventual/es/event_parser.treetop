@@ -33,6 +33,10 @@ grammar EsDates
   
   ##########
   rule times
+    time_range / time_list
+  end
+  
+  rule time_list
     space 'a' space ('las' / 'la') (time_12 / time_24) ((space 'y' / ',') (time_12 / time_24))* <Eventual::Times>
   end
   
@@ -41,7 +45,11 @@ grammar EsDates
   end
   
   rule time_12
-    space ('0' [0-9] / '1' [0-2] / [0-9]) (':' [0-5] [0-9])?  space? period:(('a'/'p') '.'? space? 'm' '.'? space?) <Eventual::Time12>
+    space ('0' [0-9] / '1' [0-2] / [0-9]) (':' [0-5] [0-9])?  space? period:(('a'/'p') '.'? space? 'm' '.'? ) <Eventual::Time12>
+  end
+  
+  rule time_range
+    space 'de' space ('las' / 'la') first:(time_12 / time_24) space 'a' space ('las' / 'la') last:(time_12 / time_24) <Eventual::TimeRange>
   end
 
   ##########

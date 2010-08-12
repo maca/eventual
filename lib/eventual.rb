@@ -13,7 +13,7 @@ module Eventual
   #
   # Options:
   # +:lang+: 
-  #   Defaults to 'Es', the language to be used for parsing, currently only spanish is supported, hang on.
+  #   Defaults to 'Es', the language to be used for parsing, currently only spanish is supported, please contribute.
   # +:default_year+: 
   #   The default year to be used in case year is not specified in the text, defaults to current year
   # +:default_event_span+: 

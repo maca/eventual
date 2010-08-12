@@ -337,6 +337,7 @@ describe Eventual, 'Es' do
         @result = Eventual.parse('1 de enero del 2010 a las 15:00')
         @dates  = [DateTime.civil 2010, 1, 1, 15]
       end
+      
       it_should_behave_like 'correctly parses'
       it_should_behave_like 'outputs DateTime'
     end
@@ -390,6 +391,24 @@ describe Eventual, 'Es' do
       end
     end
     
+    describe 'three times for month range' do
+      before do
+        @result = Eventual.parse('lunes y martes de diciembre a las 16:00, 17:00 y 15:00 horas')
+        @dates  = (
+          (DateTime.parse('2010-12-1T15:00')..DateTime.parse('2010-12-31T15:00')).map + 
+          (DateTime.parse('2010-12-1T16:00')..DateTime.parse('2010-12-31T16:00')).map +
+          (DateTime.parse('2010-12-1T17:00')..DateTime.parse('2010-12-31T17:00')).map
+        ).reject{ |day| not [1,2].include?(day.wday) }
+      end
+      
+      it_should_behave_like 'correctly parses'
+      it_should_behave_like 'outputs DateTime'
+      
+      it "should not include other time" do
+        @result.should_not include(DateTime.parse('2010-12-06T14:00'))
+      end
+    end
+    
     describe 'range with time as 12 hours am' do
       before do
         @result = Eventual.parse('lunes y martes de diciembre a las 3 am')
@@ -423,14 +442,6 @@ describe Eventual, 'Es' do
       end
       it_should_behave_like 'correctly parses'
       it_should_behave_like 'outputs DateTime'
-      
-      it "should include time encompassed in 60 minutes from start" do
-        @result.should include(DateTime.civil(2010, 12, 1, 15, 30))
-      end
-      
-      it "should not include time past 60 minutes from start" do
-        @result.should_not include(DateTime.civil(2010, 12, 1, 16, 00))
-      end
     end
     
     describe 'event defined timespan' do
@@ -440,20 +451,27 @@ describe Eventual, 'Es' do
       end
       it_should_behave_like 'correctly parses'
       it_should_behave_like 'outputs DateTime'
-      
-      it "should include time encompassed in 60 minutes from start" do
-        @result.should include(DateTime.civil(2010, 12, 1, 15, 30))
-      end
-      
-      it "should not include time past 60 minutes from start" do
-        @result.should include(DateTime.civil(2010, 12, 1, 16, 00))
-      end
-      
-      it "should not include time past 60 minutes from start" do
-        @result.should_not include(DateTime.civil(2010, 12, 1, 17, 00))
-      end
     end
   end
+  
+  describe "with time range" do
+    describe 'single day with time range' do
+      before do
+        @result = Eventual.parse('1 de enero del 2010 de las 15:00 a las 16:00')
+        @ranges = [(DateTime.civil 2010, 1, 1, 15)..(DateTime.civil 2010, 1, 1, 16)]
+      end
+      
+      it { @result.should_not be_nil }
+      it { @result.to_a.size.should == @ranges.map.size }
+      it { @result.should map_dates *@ranges }
+      it { @ranges.each{ |range|  range.each{ |date| @result.should include(date) } } }
+      # it { @result.should_not include(@dates.first - 1) }
+      # it { @result.should_not include(@dates.last + 1) }
+      # it { @dates.select{ |d| @result.include? d }.map{ |d| d.to_s  }.should == @dates.map{ |r| r.to_s  } }
+      
+    end
+  end
+  
   
   describe 'Marshal dump' do
     describe "month without year parsing 'marzo'" do
