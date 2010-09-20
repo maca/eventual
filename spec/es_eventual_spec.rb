@@ -137,6 +137,17 @@ describe Eventual, 'Es' do
           lambda { Eventual.parse("lunes 21 de marzo").map }.should raise_error(Eventual::WdayMatchError)
         end
       end
+      
+      describe 'date with wday and comma' do
+        describe "parsing 'domingo, 21 de marzo'" do
+          before { @result = Eventual.parse("domingo, 21 de marzo") }
+          it_should_behave_like 'correctly parses'
+        end
+
+        it "should raise WdayMatchError if weekday doesn't correspond to date" do
+          lambda { Eventual.parse("lunes 21 de marzo").map }.should raise_error(Eventual::WdayMatchError)
+        end
+      end
     end
 
     describe 'day list' do
@@ -232,6 +243,14 @@ describe Eventual, 'Es' do
     describe "lunes y martes del 1 de octubre al 2 de diciembre del 2008" do
       before do 
         @result = Eventual.parse "lunes y martes del 1 de octubre al 2 de diciembre del 2008"
+        @dates  = (Date.parse('2008-10-1')..DateTime.parse('2008-12-2')).reject{ |day| not [1,2].include?(day.wday) }
+      end
+      it_should_behave_like 'correctly parses'
+    end
+    
+    describe "lunes y martes, del 1 de octubre al 2 de diciembre del 2008" do
+      before do 
+        @result = Eventual.parse "lunes y martes, del 1 de octubre al 2 de diciembre del 2008"
         @dates  = (Date.parse('2008-10-1')..DateTime.parse('2008-12-2')).reject{ |day| not [1,2].include?(day.wday) }
       end
       it_should_behave_like 'correctly parses'

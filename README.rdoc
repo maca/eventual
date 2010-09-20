@@ -84,6 +84,7 @@ Ejemplos de formatos reconocidos:
 * 21 de marzo
 * 21 marzo
 * domingo 21 de marzo
+* domingo, 21 de marzo
 * 1, 2 y 3 de marzo
 * 1, 2 y 3 marzo
 * lunes 1, martes 2 y miercoles 3 de marzo
@@ -101,6 +102,7 @@ Ejemplos de formatos reconocidos:
 * los lunes y martes del 1 al 22 de marzo del '10
 * los lunes y los martes del 1 al 22 de marzo del '10
 * lunes y martes de diciembre a las 15
+* lunes y martes, de diciembre a las 15
 * lunes y martes de diciembre a las 15:30 hrs.
 * lunes y martes de diciembre a las 15:00 y 16:00 horas
 * lunes y martes de diciembre a las 3 am
@@ -111,6 +113,7 @@ Ejemplos de formatos reconocidos:
 Formatos a reconocer
 
 * todo el año
+* lunes y martes de diciembre, 3:15 p.m.
 
 == INSTALACIÓN:
 

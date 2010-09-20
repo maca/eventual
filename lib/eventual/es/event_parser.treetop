@@ -58,7 +58,7 @@ grammar EsDates
   end
   
   rule weekday_constrain
-    wdays_node:weekday space <Eventual::WeekdayConstrain>
+    wdays_node:weekday ','? space <Eventual::WeekdayConstrain>
   end
   
   rule weekday_list
