@@ -6,12 +6,12 @@ module Eventual
   WdayListR       = /\b(?:#{ WdaysR.join('|') })/.freeze
 
   class WdayMatchError < StandardError #:nodoc:
-    def initialize value, wday_index
-      @value, @wday_index = value, wday_index
+    def initialize value
+      @value
     end
     
     def to_s
-      "El #{@value.day} de #{MonthNames[@value.month]} del #{@value.year} cae en #{Weekdays[@value.wday]} no #{Weekdays[@wday_index]}"
+      "El #{@value.day} de #{MonthNames[@value.month]} del #{@value.year} cae en #{Weekdays[@value.wday]}"
     end
   end
 
@@ -48,19 +48,13 @@ module Eventual
     attr_accessor :times
     
     # Returns last Date or DateTime of the encompassed period
-    def last
-      to_a.last
-    end
+    def last; to_a.last end
     
     # Returns last Date or DateTime of the encompassed period
-    def first
-      to_a.first
-    end
+    def first; to_a.first end
     
     # Returns an array with all the encompassed Dates or DateTimes
-    def to_a
-      map
-    end
+    def to_a; map end
     
     # Returns true if the weekday (as number) correspons to any allowed weekday
     def date_within_weekdays? date
@@ -78,15 +72,9 @@ module Eventual
       result = false
       walk { |elements| break result = true if elements.include? date }
       
-      unless date.class == Date or times.nil? or times.empty?
-        @time_span  ||= 60
-        return false unless times.inject(nil){ |memo, time|
-          check_against = ::Time.local date.year, date.month, date.day, time.hour, time.minute
-          time          = ::Time.local date.year, date.month, date.day, date.hour, date.min
-          break true if time >= check_against && time < check_against + 60 * @time_span
-        }
-      end
-      result
+      return result if !result or date.class == Date or times.nil?
+
+      times.include? date
     end
     
     private
@@ -96,7 +84,7 @@ module Eventual
           
       walk  = lambda do |elements|
         break unless elements
-        weekdays = elements.first.value if elements.first.class == WeekdayConstrain
+        weekdays = elements.shift.value if WeekdayConstrain === elements.first
         
         elements.reverse.map do |element|
           case element
@@ -105,7 +93,6 @@ module Eventual
             element.year     = year
             element.month    = month
             element.times    = @times
-            
             yield element
           when Year
             year  = element.value
@@ -113,29 +100,37 @@ module Eventual
           when MonthName
             month = element.value
             next nil
-          when WeekdayConstrain
+          when TimeList, TimeRange
+            @times = element
             next nil
-          when Times
-            @times = element.map
-            next nil
-          else
+          else            
             walk.call element.elements
           end
         end.reverse
       end
       walk.call(elements).flatten.compact
     end
+  
+    def make year, month, day
+      return Date.civil(year, month, day) unless times
+      times.make year, month, day
+    end
   end
 
   class Day < Node #:nodoc:
+    def value
+      Date.civil year, month, text_value.to_i
+    end
+    
     def map &block
-      dates = times ? times.map{ |time| DateTime.civil year, month, text_value.to_i, time.hour, time.minute } : [Date.civil(year, month, text_value.to_i)]
-      raise WdayMatchError.new(dates.first, weekdays.first) unless date_within_weekdays? dates.first
-      dates.map(&block)
+      dates = make(year, month, text_value.to_i)
+      dates = [dates] unless Array === dates
+      raise WdayMatchError.new(dates.first) unless date_within_weekdays? dates.first
+      dates.map &block
     end
     
     def include? date
-      map{ |e| e.strftime("%Y-%m-%d") }.include? date.strftime("%Y-%m-%d")
+      map { |element| [*element].map{ |e| e.strftime("%Y-%m-%d") } }.flatten.include? date.strftime("%Y-%m-%d")
     end
   end
 
@@ -152,33 +147,22 @@ module Eventual
     alias node_map map
     private :node_map
     
-    def map
-      array = []
-      range.each do |date|
+    def map &block
+      range.map do |date|
         next unless date_within_weekdays? date
-        next array.push(block_given? ? yield(date) : date) unless times
-        
-        times.each do |time|
-          new_date = DateTime.civil date.year, date.month, date.day, time.hour, time.minute
-          array.push block_given? ? yield(new_date) : new_date
-        end
+        dates = times ? make(date.year, date.month, date.day) : [date]
+        dates.map &block
       end
-      array
     end
   end
 
   class MonthPeriod < Period #:nodoc:
     def first
-      return Date.civil(year, month_name.value) unless times and !times.empty?
-      time = times.first
-      return DateTime.civil(year, month_name.value, 1, time.hour, time.minute)
+      Date.civil year, month_name.value
     end
-    
+
     def last
-      date = (first >> 1) - 1
-      return date unless times and !times.empty?
-      time = times.last
-      DateTime.civil(date.year, date.month, date.day, time.hour, time.minute)
+      Date.civil year, month_name.value, -1
     end
   end
 
@@ -192,32 +176,59 @@ module Eventual
     end
   end
 
-  class Times < Treetop::Runtime::SyntaxNode #:nodoc:
+  class TimeList < Treetop::Runtime::SyntaxNode #:nodoc:
     def map
       walk_times = lambda do |elements|
         break unless elements
-        elements.map { |e| Time === e ? e.value : walk_times.call(e.elements) }
+        elements.map do |element|
+          next walk_times.call(element.elements) unless Time === element
+          block_given? ? yield(element) : element
+        end
       end
-      walk_times.call(elements).flatten.compact.sort_by{ |t| '%02d%02d' % [t.hour, t.minute] }
-    end
-  end
-
-  class Time < Treetop::Runtime::SyntaxNode #:nodoc:
-    attr_accessor :hour, :minute
-    def value
-      @hour, @minute = text_value.scan(/\d+/).map(&:to_i)
-      @minute ||= 0
-      self
+      walk_times.call(elements).flatten.compact
     end
     
-
+    def make year, month, day
+      map { |time| DateTime.civil year, month, day, time.hour, time.minute }.sort
+    end
+    
+    def include? date
+      map { |time| time.to_i }.include? date.strftime("%H%M").to_i
+    end
+  end
+  
+  class Time < Treetop::Runtime::SyntaxNode #:nodoc:
+    def value
+      @value ||= text_value.scan(/\d+/).map(&:to_i)
+    end
+    
+    def hour; value.first end
+    def minute; value[1] || 0 end
+    
+    def to_i
+      ("%02d%02d" % [hour, minute]).to_i
+    end
   end
 
   class Time12 < Time #:nodoc:
-    def value
-      super
-      @hour += 12 if period.text_value.gsub(/[^a-z]/, '') == 'pm'
-      self
+    def pm?
+      @pm ||= true if period.text_value.include? 'pm'
+    end
+    
+    def hour
+      pm? ? super + 12 : super
+    end
+  end
+
+  class TimeRange < Treetop::Runtime::SyntaxNode #:nodoc:
+    def make year, month, day
+      first_time = DateTime.civil year, month, day, first.hour, first.minute
+      last_time  = DateTime.civil year, month, day, last.hour,  last.minute
+      (first_time..last_time)
+    end
+    
+    def include? date
+      (first.to_i..last.to_i).include? date.strftime("%H%M").to_i
     end
   end
 end
