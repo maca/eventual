@@ -82,7 +82,7 @@ grammar EsDates
   end
 
   rule weekday
-    (('lun' 'es'? ) / ('mar' 'tes'? ) / ('mi' 'ercoles'? ) / ('jue' 'ves'? ) / ('vie' 'rnes'? ) / ('sab' 'ado'? 's'? ) / ('dom' 'ingo'? 's'? ))
+    (('lun' 'es'? ) / ('mar' 'tes'? ) / ('mi' 'ércoles'? ) / ('jue' 'ves'? ) / ('vie' 'rnes'? ) / ('sáb' 'ado'? 's'? ) / ('dom' 'ingo'? 's'? ))
   end
    
   rule space

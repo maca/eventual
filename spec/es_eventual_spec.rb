@@ -31,6 +31,14 @@ describe Eventual, 'Es' do
       it_should_behave_like 'correctly parses'
     end
 
+    describe "month without year parsing 'marzo', case insensitive" do
+      before do
+        @result = Eventual.parse 'MarZo', :lang => 'Es'
+        @dates  = (Date.parse('2010-3-1')..Date.parse('2010-3-31')).map
+      end
+      it_should_behave_like 'correctly parses'
+    end
+    
     describe 'month with year' do
       describe "parsing 'marzo de 2009'" do
         before do
@@ -165,8 +173,8 @@ describe Eventual, 'Es' do
         it_should_behave_like 'correctly parses'
       end
 
-      describe "day list with weekday 'lunes 1, martes 2 y miercoles 3 de marzo'" do
-        before { @result = Eventual.parse("lunes 1, martes 2 y miercoles 3 de marzo") }
+      describe "day list with weekday 'lunes 1, martes 2 y miércoles 3 de marzo'" do
+        before { @result = Eventual.parse("lunes 1, martes 2 y miércoles 3 de marzo") }
         it_should_behave_like 'correctly parses'
       end
 
