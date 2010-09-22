@@ -42,7 +42,6 @@ module Eventual
 
   class Node < Treetop::Runtime::SyntaxNode
     attr_accessor :year
-    attr_accessor :time_span
     attr_accessor :month
     attr_accessor :weekdays
     attr_accessor :times
@@ -219,8 +218,14 @@ module Eventual
       pm? ? super + 12 : super
     end
   end
+  
+  class TimeRangeList < TimeList
+    def make year, month, day
+      map { |e| e.make year, month, day  }
+    end
+  end
 
-  class TimeRange < Treetop::Runtime::SyntaxNode #:nodoc:
+  class TimeRange < Time #:nodoc:
     def make year, month, day
       first_time = DateTime.civil year, month, day, first.hour, first.minute
       last_time  = DateTime.civil year, month, day, last.hour,  last.minute

@@ -56,57 +56,63 @@ Ejemplos:
   Eventual.parse( 'del 5 al 7 de junio del 2007 a las 16:00' ).include? Date.civil(2007, 6, 6)
   => true
   
-  # El evento tiene una duración por omisión de 60 minutos
-  Eventual.parse( 'del 5 al 7 de junio del 2007 a las 16:00' ).include? DateTime.civil(2007, 6, 6, 16, 59)
-  => true
+  # Se puede pasar un rango de horas y se obtendrá un rango
+  Eventual.parse('1 de enero del 2010 de las 15:00 a las 16:00')
+  => [(DateTime.civil 2010, 1, 1, 15)..(DateTime.civil 2010, 1, 1, 16)]
   
-  Eventual.parse( 'del 5 al 7 de junio del 2007 a las 16:00' ).include? DateTime.civil(2007, 6, 6, 17, 00)
-  => false
+  Eventual.parse('1 de enero del 2010 de las 15:00 a las 16:00 y de las 17:00 a las 19:00')
   
-  # Pero se puede cambiar
-  dates = Eventual.parse( 'del 5 al 7 de junio del 2007 a las 16:00', :default_event_span => 120)
-  dates.include? DateTime.civil(2007, 6, 6, 17, 00)
-  => true
   
 Ejemplos de formatos reconocidos:
 
-* marzo
-* marzo de 2009
-* marzo del 2009
-* todo marzo 2009
-* marzo, 2009
-* marzo '09
-* lunes y martes marzo del 2010
-* todos los lunes y martes de marzo del 2010
-* lunes y martes durante marzo del 2010
-* lunes y martes durante todo marzo del 2010
-* lunes y martes, marzo del 2010
-* 21 de marzo
-* 21 marzo
-* domingo 21 de marzo
-* domingo, 21 de marzo
-* 1, 2 y 3 de marzo
-* 1, 2 y 3 marzo
-* lunes 1, martes 2 y miercoles 3 de marzo
-* 1 al 3 de marzo
-* 1 al 3, marzo
-* del 1 al 3 de marzo
-* del 1 al 3, marzo
-* 24 de febrero al 3 de marzo del 2010
-* 24 de diciembre del 2009 al 3 de enero del 2010
-* lunes y martes del 1 al 22 de marzo del '10
-* fines de semana del 1 al 22 de marzo del '10
-* entre semana del 1 al 22 de marzo del '10
-* lunes y martes del 1 al 22 de marzo del '10
-* todos los lunes y martes del 1 al 22 de marzo del '10
-* los lunes y martes del 1 al 22 de marzo del '10
-* los lunes y los martes del 1 al 22 de marzo del '10
-* lunes y martes de diciembre a las 15
-* lunes y martes, de diciembre a las 15
-* lunes y martes de diciembre a las 15:30 hrs.
-* lunes y martes de diciembre a las 15:00 y 16:00 horas
-* lunes y martes de diciembre a las 3 am
-* lunes y martes de diciembre a las 3:15 p.m.
+- Por mes
+  * marzo
+  * marzo de 2009
+  * marzo del 2009
+  * todo marzo 2009
+  * marzo, 2009
+  * marzo '09
+- Lista de dias
+  * lunes y martes marzo del 2010
+  * todos los lunes y martes de marzo del 2010
+  * lunes y martes durante marzo del 2010
+  * lunes y martes durante todo marzo del 2010
+  * lunes y martes, marzo del 2010
+  * 21 de marzo
+  * 21 marzo
+  * domingo 21 de marzo
+  * domingo, 21 de marzo
+  * 1, 2 y 3 de marzo
+  * 1, 2 y 3 marzo
+  * lunes 1, martes 2 y miercoles 3 de marzo
+  * 1 al 3 de marzo
+  * 1 al 3, marzo
+  * del 1 al 3 de marzo
+  * del 1 al 3, marzo
+- Rango de fechas
+  * 24 de febrero al 3 de marzo del 2010
+  * 24 de diciembre del 2009 al 3 de enero del 2010
+  * lunes y martes del 1 al 22 de marzo del '10
+  * fines de semana del 1 al 22 de marzo del '10
+  * entre semana del 1 al 22 de marzo del '10
+  * lunes y martes del 1 al 22 de marzo del '10
+  * todos los lunes y martes del 1 al 22 de marzo del '10
+  * los lunes y martes del 1 al 22 de marzo del '10
+  * los lunes y los martes del 1 al 22 de marzo del '10
+- Con horario (se puede aplicar a todos los casos)
+  * lunes y martes de diciembre a las 15
+  * lunes y martes, de diciembre a las 15
+  * lunes y martes de diciembre a las 15:30 hrs.
+  * lunes y martes de diciembre a las 15:00 y 16:00 horas
+  * lunes y martes de diciembre a las 15:00 y 16:00 horas
+  * lunes y martes de diciembre a las 3 am
+  * lunes y martes de diciembre a las 3:15 p.m.
+- Con rango de horario (se puede aplicar a todos los casos)
+  * 1 de enero del 2010 de las 15:00 a las 16:00
+  * 1 de enero del 2010 de las 15:00 a las 16:00 y de las 17:00 a las 19:00
+  * 1 de enero del 2010 de las 15:00 a las 16:00, de las 17:00 a las 19:00 y de las 21:00 a las 22:00
+- Fechas compuestas
+  * 1 de enero y lunes y martes del 1 de octubre al 2 de diciembre del 2008
 
 == TODO:
 

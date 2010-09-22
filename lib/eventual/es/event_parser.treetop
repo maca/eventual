@@ -1,10 +1,14 @@
 grammar EsDates
   rule root
-    (date_list / dates) year? times? <Eventual::Node>
+    compound_date (((space 'y' / ',') space / newline) compound_date)* <Eventual::Node> # ((space 'y' / ',') compound_date)*
+  end
+
+  rule compound_date
+    (same_year_date_list / dates) year? times?
   end
 
   rule dates
-    (period / date)
+    period / date
   end
   
   rule period
@@ -15,8 +19,8 @@ grammar EsDates
     weekday_constrain? day_number month_name?
   end
   
-  rule date_list
-    dates (',' space dates)* (space 'y' space dates) / dates (space? "\n" space? dates)*
+  rule same_year_date_list
+    dates (',' space dates)* (space 'y' space dates)
   end
   
   rule range
@@ -33,7 +37,7 @@ grammar EsDates
   
   ##########
   rule times
-    time_range / time_list
+    time_range_list / time_list
   end
   
   rule time_list
@@ -50,6 +54,10 @@ grammar EsDates
   
   rule time_range
     space 'de' space ('las' / 'la') first:(time_12 / time_24) space 'a' space ('las' / 'la') last:(time_12 / time_24) <Eventual::TimeRange>
+  end
+  
+  rule time_range_list
+    time_range ((space 'y' / ',') time_range)* <Eventual::TimeRangeList>
   end
 
   ##########
@@ -87,5 +95,9 @@ grammar EsDates
    
   rule space
     ' '+
+  end
+  
+  rule newline
+    space* "\n" space*
   end
 end

@@ -22,17 +22,14 @@ module Eventual
   def self.parse text, opts = {}
     lang    = opts.delete(:lang) || 'Es'
     year    = opts.delete(:default_year)
-    span    = opts.delete(:default_event_span)
     
     raise ArgumentError, "Expected option `:default_year` to be an integer"        if year && !(Integer === year)
-    raise ArgumentError, "Expected option `:default_event_span` to be an integer"  if span && !(Integer === span)
     
     parser = const_get("#{ lang.to_s[0..1].capitalize }DatesParser") rescue raise( NotImplementedError.new("Parsing has not yet been implemented for the language '#{lang}'"))
 
     node   = parser.new.parse text.gsub('sab', 'sáb').gsub('mie', 'mié').downcase
 
     node.year      = year if year
-    node.time_span = span if span
     node
   end
 end
