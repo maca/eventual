@@ -101,6 +101,6 @@ grammar EsDates
   end
   
   rule newline
-    space* "\n" space*
+    space* ("\n" / "\r" )+ space*
   end
 end

@@ -419,16 +419,36 @@ describe Eventual, 'Es' do
     it_should_behave_like 'correctly parses dates'
     it_should_behave_like 'includes corresponding dates'
   end
-  
-  describe 'compound dates list separated by new line' do
-    before do
-      @result = Eventual.parse "31 de diciembre de 1998 \n 1 de enero de 1999"
-      @dates  = [Date.parse('1998-12-31'), Date.parse('1999-1-1')]
-    end
-    it_should_behave_like 'correctly parses dates'
-    it_should_behave_like 'includes corresponding dates'
-  end
 
+  describe 'compound dates' do  
+    describe 'compound dates list separated by \n' do
+      before do
+        @result = Eventual.parse "31 de diciembre de 1998\n1 de enero de 1999"
+        @dates  = [Date.parse('1998-12-31'), Date.parse('1999-1-1')]
+      end
+      it_should_behave_like 'correctly parses dates'
+      it_should_behave_like 'includes corresponding dates'
+    end
+
+    describe 'compound dates list separated by \r' do
+      before do
+        @result = Eventual.parse "31 de diciembre de 1998\r1 de enero de 1999"
+        @dates  = [Date.parse('1998-12-31'), Date.parse('1999-1-1')]
+      end
+      it_should_behave_like 'correctly parses dates'
+      it_should_behave_like 'includes corresponding dates'
+    end
+
+    describe 'compound dates list separated by \r\n' do
+      before do
+        @result = Eventual.parse "31 de diciembre de 1998\r\n1 de enero de 1999"
+        @dates  = [Date.parse('1998-12-31'), Date.parse('1999-1-1')]
+      end
+      it_should_behave_like 'correctly parses dates'
+      it_should_behave_like 'includes corresponding dates'
+    end
+  end
+    
   describe 'with time constrain' do
     shared_examples_for 'outputs DateTime' do
       it "should all be DateTime" do
