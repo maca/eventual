@@ -26,11 +26,19 @@ module Eventual
 
   class WeekdayConstrain < Treetop::Runtime::SyntaxNode #:nodoc:
     def value
-      text    = wdays_node.text_value.sub('semana', '')
+      text    = wdays_node.text_value.sub('semana', '').sub(/^de\s/, '')
       days    = text.scan(WdayListR).map{ |d| WdaysR.index /#{d}/ }
       days   += (1..5).map if text.include?('entre')
       days   += [6,0] if text.include?('fines')
+      days.sort!
+      days    = (days.first..days.last).map if text.match /\sal?\s/
       days.uniq
+    end
+  end
+  
+  class WeekdayPeriodConstrain < WeekdayConstrain #:nodoc:
+    def value
+      text_value.scan() 
     end
   end
 

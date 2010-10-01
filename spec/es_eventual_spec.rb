@@ -361,6 +361,23 @@ describe Eventual, 'Es' do
           it_should_behave_like 'includes corresponding dates'
         end
       end
+
+      describe 'wday range' do
+        before do
+          @dates = (Date.parse('2010-3-1')..Date.parse('2010-3-22')).reject{ |day| not [1,2,3,4,5].include?(day.wday) }
+        end
+        describe "wdays for 'lunes a viernes del 1 al 22 de marzo del '10" do
+          before { @result = Eventual.parse("lunes a viernes del 1 al 22 de marzo del '10") }
+          it_should_behave_like 'correctly parses dates'
+          it_should_behave_like 'includes corresponding dates'
+        end
+
+        describe "wdays for 'de lunes a viernes del 1 al 22 de marzo del '10" do
+          before { @result = Eventual.parse("de lunes a viernes del 1 al 22 de marzo del '10") }
+          it_should_behave_like 'correctly parses dates'
+          it_should_behave_like 'includes corresponding dates'
+        end
+      end
     end
   end
 

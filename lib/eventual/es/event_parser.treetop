@@ -12,7 +12,7 @@ grammar EsDates
   end
   
   rule period
-    weekdays_constrain? (range / month)
+    weekday_list_constrain? (range / month)
   end
   
   rule date
@@ -60,7 +60,6 @@ grammar EsDates
     time_range ((space 'y' / ',') time_range)* <Eventual::TimeRangeList>
   end
 
-  ##########
   rule month_name
     (((space 'de') / ',')? space)? ('enero' / 'febrero' / 'marzo' / 'abril' / 'mayo' / 'junio' / 'julio' / 'agosto' / 'septiembre' / 'octubre' / 'noviembre' / 'diciembre') <Eventual::MonthName>
   end
@@ -69,10 +68,14 @@ grammar EsDates
     ((space 'de' 'l'?) / ',')? space ([1-9] [0-9] [0-9] [0-9] / "'" [0-9] [0-9]) <Eventual::Year>
   end
   
-  rule weekdays_constrain
-    wdays_node:(weekday_list / weekdays / weekday) (',' / (space ('del' / 'de' / 'durante todo' / 'durante')))? space <Eventual::WeekdayConstrain>
+  rule weekday_list_constrain
+    wdays_node:(weekday_period / weekday_list / weekdays / weekday) (',' / (space ('del' / 'de' / 'durante todo' / 'durante')))? space <Eventual::WeekdayConstrain>
   end
   
+  rule weekday_period
+    ('de' space)? weekday space 'a' space weekday 
+  end
+
   rule weekday_constrain
     wdays_node:weekday ','? space <Eventual::WeekdayConstrain>
   end
