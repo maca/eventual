@@ -10,7 +10,6 @@ begin
     gem.email                = "macarui@gmail.com"
     gem.homepage             = "http://github.com/maca/eventual"
     gem.authors              = ["Macario Ortega"]
-    gem.post_install_message = %{ \n\n***********************************\nPor favor tenga en cuenta que el API ha cambiado, consulte la página del proyecto: http://github.com/maca/eventual. English implementation is due.\n***********************************\n\n }
     gem.add_dependency "treetop", ">= 1.4.5"
     gem.add_development_dependency "rspec", ">= 1.2.9"
   end

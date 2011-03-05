@@ -1,3 +1,4 @@
+# encoding: UTF-8
 module Eventual
   Weekdays        = %w(domingo lunes martes miércoles jueves viernes sábado).freeze
   MonthNames      = %w(enero febrero marzo abril mayo junio julio agosto septiembre noviembre).unshift(nil).freeze

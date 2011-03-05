@@ -1,4 +1,6 @@
-require "#{File.dirname __FILE__}/spec_helper"
+# encoding: UTF-8
+
+require "spec_helper"
 require 'eventual'
 
 describe Eventual, 'Es' do
@@ -138,7 +140,7 @@ describe Eventual, 'Es' do
   describe 'day numbers' do
     describe 'single date' do
       before do
-        @dates = [Date.civil 2010, 3, 21]
+        @dates = [Date.civil(2010), 3, 21]
       end
 
       describe "should single day number for '21 de marzo'" do
@@ -459,7 +461,7 @@ describe Eventual, 'Es' do
     describe 'single day with time' do
       before do
         @result = Eventual.parse('1 de enero del 2010 a las 15:00')
-        @dates  = [DateTime.civil 2010, 1, 1, 15]
+        @dates  = [DateTime.civil(2010), 1, 1, 15]
       end
 
       it_should_behave_like 'correctly parses dates'
