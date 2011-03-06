@@ -14,7 +14,7 @@ Ejemplos:
   require 'rubygems'
   require 'eventual' 
 
-  Eventual.parse( 'del 5 al 7 de junio del 2009' ).map
+  Eventual.parse( 'del 5 al 7 de junio del 2009' ).to_a
   => [#<DateTime: 4909975/2,0,2299161>, #<DateTime: 4909977/2,0,2299161>, #<DateTime: 4909979/2,0,2299161>]
   
   # Si no se especifica el año se usará el año actual
@@ -27,7 +27,7 @@ Ejemplos:
   => ["2007-06-05", "2007-06-06", "2007-06-07"]
   
   # Si se especifica la hora el resultado será un Array de DateTime
-  Eventual.parse( 'del 5 al 7 de junio del 2009 a las 16:00 y 18:00 horas', :lang => :es ).map
+  Eventual.parse( 'del 5 al 7 de junio del 2009 a las 16:00 y 18:00 horas', :lang => :es ).to_a
   => [#<DateTime: 14729929/6,0,2299161>, #<DateTime: 9819953/4,0,2299161>, #<DateTime: 14729935/6,0,2299161>, #<DateTime: 9819957/4,0,2299161>, #<DateTime: 14729941/6,0,2299161>, #<DateTime: 9819961/4,0,2299161>]
   
   Eventual.parse( 'del 5 al 7 de junio del 2009 a las 16:00 y 18:00 horas' ).map{ |d| d.to_s }
