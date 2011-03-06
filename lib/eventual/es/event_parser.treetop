@@ -1,30 +1,30 @@
 grammar EsDates
   rule root
-    compound_date (((space 'y' / ',') space / newline) compound_date)* <Eventual::Node> # ((space 'y' / ',') compound_date)*
+    compound_date (((space 'y' / ',') space / newline) compound_date)* <Eventual::Node>
   end
 
   rule compound_date
-    (same_year_date_list / dates) year? times?
+    (date_list / dates) year? times?
   end
 
   rule dates
-    period / date
+    period / single_day
   end
   
   rule period
     weekday_list_constrain? (range / month)
   end
   
-  rule date
-    weekday_constrain? day_number month_name?
-  end
-  
-  rule same_year_date_list
+  rule date_list
     dates (',' space dates)* (space 'y' space dates)
   end
   
   rule range
-    (('del' / 'de' / ',') space)? (month / date) year? space ('al' / 'a') space (month / date) <Eventual::DatePeriod>
+    (('del' / 'de' / ',') space)? (month / single_day) year? space ('al' / 'a') space (month / single_day) <Eventual::DatePeriod>
+  end
+
+  rule single_day
+    weekday_constrain? day_number month_name? / month
   end
 
   rule month

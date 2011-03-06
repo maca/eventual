@@ -20,4 +20,6 @@ rdoc
 pkg
 eventual.gemspec
 
-## PROJECT::SPECIFIC
+## Bundler
+*.gem
+.bundle

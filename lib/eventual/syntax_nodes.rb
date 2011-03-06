@@ -1,4 +1,5 @@
 # encoding: UTF-8
+
 module Eventual
   Weekdays        = %w(domingo lunes martes miércoles jueves viernes sábado).freeze
   MonthNames      = %w(enero febrero marzo abril mayo junio julio agosto septiembre noviembre).unshift(nil).freeze
@@ -29,10 +30,10 @@ module Eventual
     def value
       text    = wdays_node.text_value.sub('semana', '').sub(/^de\s/, '')
       days    = text.scan(WdayListR).map{ |d| WdaysR.index /#{d}/ }
-      days   += (1..5).map if text.include?('entre')
+      days   += (1..5).to_a if text.include?('entre')
       days   += [6,0] if text.include?('fines')
       days.sort!
-      days    = (days.first..days.last).map if text.match /\sal?\s/
+      days    = (days.first..days.last).to_a if text.match /\sal?\s/
       days.uniq
     end
   end
@@ -59,10 +60,12 @@ module Eventual
     def last; to_a.last end
     
     # Returns last Date or DateTime of the encompassed period
-    def first; to_a.first end
+    def first; 
+      to_a.first 
+    end
     
     # Returns an array with all the encompassed Dates or DateTimes
-    def to_a; map end
+    def to_a; map{ |e| e } end
     
     # Returns true if the weekday (as number) correspons to any allowed weekday
     def date_within_weekdays? date
@@ -72,15 +75,17 @@ module Eventual
     
     # Invokes block once for each Date or DateTime. Creates a new array containing the values returned by the block.
     def map &block
-      walk { |elements| elements.map &block }
+      walk { |elements| elements.map &block }.compact
     end
     
     # Returns true if the Date or DateTime passed is included in the parsed Dates or DateTimes
     def include? date
       result = false
-      walk { |elements| break result = true if elements.include? date }
-      
-      return result if !result or date.class == Date or times.nil?
+      walk { |elements|
+        break result = true if elements.include? date 
+      }
+
+      return result if !result || date.class == Date || times.nil?
 
       times.include? date
     end
@@ -134,7 +139,7 @@ module Eventual
       dates = make(year, month, text_value.to_i)
       dates = [dates] unless Array === dates
       raise WdayMatchError.new(dates.first) unless date_within_weekdays? dates.first
-      dates.map &block
+      dates.map(&block).compact
     end
     
     def include? date
@@ -149,38 +154,34 @@ module Eventual
     
     def include? date
       return false unless date_within_weekdays? date
-      range.include? date
+      range.cover? date
     end
-    
-    alias node_map map
-    private :node_map
     
     def map &block
       range.map do |date|
         next unless date_within_weekdays? date
-        dates = times ? make(date.year, date.month, date.day) : [date]
-        dates.map &block
-      end
+        (times ? make(date.year, date.month, date.day) : [date]).map(&block)
+      end.compact
     end
   end
 
   class MonthPeriod < Period #:nodoc:
     def first
-      Date.civil year, month_name.value
+      @first ||= Date.civil year, month_name.value
     end
 
     def last
-      Date.civil year, month_name.value, -1
+      @last ||= Date.civil year, month_name.value, -1
     end
   end
 
   class DatePeriod < Period #:nodoc:
     def first
-      node_map.first
+      @first ||= walk { |elements| elements.map{ |e| e } }.first
     end
     
     def last
-      node_map.last
+      @last ||= walk { |elements| elements.map{ |e| e } }.last
     end
   end
 

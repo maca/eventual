@@ -16,18 +16,18 @@ describe Eventual, 'Es' do
 
   shared_examples_for 'correctly parses dates' do
     it { @result.should_not be_nil }
-    it { @result.to_a.size.should == @dates.map.size }
+    it { @result.to_a.size.should == @dates.to_a.size }
     it { @result.should map_dates *@dates }
   end
   
   shared_examples_for 'correctly parses time ranges' do
     it { @result.should_not be_nil }
-    it { @result.to_a.size.should == @ranges.map.size }
+    it { @result.to_a.size.should == @ranges.to_a.size }
     it { @result.should map_dates *@ranges }
   end
 
   shared_examples_for 'includes corresponding dates' do
-    it { @dates.map{ |date| @result.should include(date) } }
+    it { @dates.each{ |date| @result.should include(date) } }
     it { @result.should_not include(@dates.first - 1) }
     it { @result.should_not include(@dates.last + 1) }
     it { @dates.select{ |d| @result.include? d }.map{ |d| d.to_s  }.should == @dates.map{ |r| r.to_s  } }
@@ -37,7 +37,7 @@ describe Eventual, 'Es' do
     describe "month without year parsing 'marzo'" do
       before do
         @result = Eventual.parse 'marzo', :lang => 'Es'
-        @dates  = (Date.parse('2010-3-1')..Date.parse('2010-3-31')).map
+        @dates  = (Date.parse('2010-3-1')..Date.parse('2010-3-31')).to_a
       end
       it_should_behave_like 'correctly parses dates'
       it_should_behave_like 'includes corresponding dates'
@@ -46,7 +46,7 @@ describe Eventual, 'Es' do
     describe "month without year parsing 'marzo', case insensitive" do
       before do
         @result = Eventual.parse 'MarZo', :lang => 'Es'
-        @dates  = (Date.parse('2010-3-1')..Date.parse('2010-3-31')).map
+        @dates  = (Date.parse('2010-3-1')..Date.parse('2010-3-31')).to_a
       end
       it_should_behave_like 'correctly parses dates'
       it_should_behave_like 'includes corresponding dates'
@@ -56,7 +56,7 @@ describe Eventual, 'Es' do
       describe "parsing 'marzo de 2009'" do
         before do
           @result = Eventual.parse "marzo de 2009"
-          @dates  = (Date.parse('2009-3-1')..Date.parse('2009-3-31')).map
+          @dates  = (Date.parse('2009-3-1')..Date.parse('2009-3-31')).to_a
         end  
         it_should_behave_like 'correctly parses dates'
         it_should_behave_like 'includes corresponding dates'
@@ -65,7 +65,7 @@ describe Eventual, 'Es' do
       describe "parsing 'marzo del 2009'" do
         before do
           @result = Eventual.parse "marzo del 2009"
-          @dates  = (Date.parse('2009-3-1')..Date.parse('2009-3-31')).map
+          @dates  = (Date.parse('2009-3-1')..Date.parse('2009-3-31')).to_a
         end  
         it_should_behave_like 'correctly parses dates'
         it_should_behave_like 'includes corresponding dates'
@@ -74,7 +74,7 @@ describe Eventual, 'Es' do
       describe "parsing 'marzo 2009'" do
         before do
           @result = Eventual.parse "marzo 2009"
-          @dates  = (Date.parse('2009-3-1')..Date.parse('2009-3-31')).map
+          @dates  = (Date.parse('2009-3-1')..Date.parse('2009-3-31')).to_a
         end  
         it_should_behave_like 'correctly parses dates'
         it_should_behave_like 'includes corresponding dates'
@@ -83,7 +83,7 @@ describe Eventual, 'Es' do
       describe "parsing 'marzo, 2009'" do
         before do
           @result = Eventual.parse "marzo, 2009"
-          @dates  = (Date.parse('2009-3-1')..Date.parse('2009-3-31')).map
+          @dates  = (Date.parse('2009-3-1')..Date.parse('2009-3-31')).to_a
         end  
         it_should_behave_like 'correctly parses dates'
         it_should_behave_like 'includes corresponding dates'
@@ -92,7 +92,7 @@ describe Eventual, 'Es' do
       describe "parsing 'marzo '09'" do
         before do
           @result = Eventual.parse "marzo '09"
-          @dates  = (Date.parse('2009-3-1')..Date.parse('2009-3-31')).map
+          @dates  = (Date.parse('2009-3-1')..Date.parse('2009-3-31')).to_a
         end  
         it_should_behave_like 'correctly parses dates'
         it_should_behave_like 'includes corresponding dates'
@@ -134,16 +134,15 @@ describe Eventual, 'Es' do
         it_should_behave_like 'includes corresponding dates'
       end
     end
-
   end
 
   describe 'day numbers' do
     describe 'single date' do
       before do
-        @dates = [Date.civil(2010), 3, 21]
+        @dates = [Date.civil(2010, 3, 21)]
       end
 
-      describe "should single day number for '21 de marzo'" do
+      describe "should parse single day number for '21 de marzo'" do
         before { @result = Eventual.parse("21 de marzo") }
         it_should_behave_like 'correctly parses dates'
         it_should_behave_like 'includes corresponding dates'
@@ -155,11 +154,11 @@ describe Eventual, 'Es' do
         it_should_behave_like 'includes corresponding dates'
       end
 
-      # describe "parsing 'marzo 21'" do
-      #   before { @result = Eventual.parse("21 marzo") }
-      #   it_should_behave_like 'correctly parses dates'
-      #   it_should_behave_like 'includes corresponding dates'
-      # end
+      describe "parsing 'marzo 21'" do
+        before { @result = Eventual.parse("21 marzo") }
+        it_should_behave_like 'correctly parses dates'
+        it_should_behave_like 'includes corresponding dates'
+      end
 
       describe 'date with wday' do
         describe "parsing 'domingo 21 de marzo'" do
@@ -167,9 +166,8 @@ describe Eventual, 'Es' do
           it_should_behave_like 'correctly parses dates'
           it_should_behave_like 'includes corresponding dates'
         end
-
         it "should raise WdayMatchError if weekday doesn't correspond to date" do
-          lambda { Eventual.parse("lunes 21 de marzo").map }.should raise_error(Eventual::WdayMatchError)
+          lambda { Eventual.parse("lunes 21 de marzo").to_a }.should raise_error(Eventual::WdayMatchError)
         end
       end
 
@@ -181,16 +179,16 @@ describe Eventual, 'Es' do
         end
 
         it "should raise WdayMatchError if weekday doesn't correspond to date" do
-          lambda { Eventual.parse("lunes 21 de marzo").map }.should raise_error(Eventual::WdayMatchError)
+          lambda { Eventual.parse("lunes 21 de marzo").to_a }.should raise_error(Eventual::WdayMatchError)
         end
       end
     end
 
     describe 'day list' do
       before do
-        @dates = (1..3).map{ |i| Date.civil( 2010, 3, i) }
+        @dates = (1..3).map{ |i| Date.civil(2010, 3, i) }
       end
-
+       
       describe "day list for '1, 2 y 3 de marzo'" do
         before { @result = Eventual.parse("1, 2 y 3 marzo") }
         it_should_behave_like 'correctly parses dates'
@@ -210,7 +208,7 @@ describe Eventual, 'Es' do
       end
 
       it "should raise WdayMatchError if weekday doesn't correspond to date" do
-        lambda { Eventual.parse("lunes 2, martes 2 y jueves 3 de marzo").map }.should raise_error(Eventual::WdayMatchError)
+        lambda { Eventual.parse("lunes 2, martes 2 y jueves 3 de marzo").to_a }.should raise_error(Eventual::WdayMatchError)
       end
     end
   end
@@ -218,7 +216,7 @@ describe Eventual, 'Es' do
   describe 'day range' do
     describe 'period in same month' do
       before do
-        @dates = (1..3).map{ |i| Date.civil( 2010, 3, i) }
+        @dates = (1..3).map{ |i| Date.civil(2010, 3, i) }
       end
 
       describe "day list for '1 al 3 de marzo" do
@@ -319,7 +317,7 @@ describe Eventual, 'Es' do
       describe "wdays for 'fines de semana del 1 al 22 de marzo del '10" do
         before do
           @result = Eventual.parse "fines de semana del 1 al 22 de marzo del '10"
-          @dates  = (Date.parse('2010-3-1')..Date.parse('2010-3-22')).map.reject{ |day| not [6,0].include?(day.wday) }
+          @dates  = (Date.parse('2010-3-1')..Date.parse('2010-3-22')).to_a.reject{ |day| not [6,0].include?(day.wday) }
         end
         it_should_behave_like 'correctly parses dates'
         it_should_behave_like 'includes corresponding dates'
@@ -328,7 +326,7 @@ describe Eventual, 'Es' do
       describe "wdays for 'entre semana del 1 al 22 de marzo del '10" do
         before do 
           @result = Eventual.parse("entre semana del 1 al 22 de marzo del '10")
-          @dates  = (Date.parse('2010-3-1')..Date.parse('2010-3-22')).map.reject{ |day| not (1..5).map.include?(day.wday) }
+          @dates  = (Date.parse('2010-3-1')..Date.parse('2010-3-22')).to_a.reject{ |day| not (1..5).map.include?(day.wday) }
         end
         it_should_behave_like 'correctly parses dates'
         it_should_behave_like 'includes corresponding dates'
@@ -387,12 +385,11 @@ describe Eventual, 'Es' do
     describe 'octubre a diciembre del 2008' do
       before do 
         @result = Eventual.parse('octubre a diciembre del 2008')
-        @dates  = (Date.parse('2008-10-1')..DateTime.parse('2008-12-31')).map
+        @dates  = (Date.parse('2008-10-1')..DateTime.parse('2008-12-31')).to_a
       end
       it_should_behave_like 'correctly parses dates'
       it_should_behave_like 'includes corresponding dates'
     end
-
 
     describe 'lunes y martes de octubre del 2007 a diciembre del 2008' do
       before do 
@@ -461,9 +458,8 @@ describe Eventual, 'Es' do
     describe 'single day with time' do
       before do
         @result = Eventual.parse('1 de enero del 2010 a las 15:00')
-        @dates  = [DateTime.civil(2010), 1, 1, 15]
+        @dates  = [DateTime.civil(2010, 1, 1, 15)]
       end
-
       it_should_behave_like 'correctly parses dates'
       it_should_behave_like 'includes corresponding dates'
       it_should_behave_like 'outputs DateTime'
@@ -512,7 +508,7 @@ describe Eventual, 'Es' do
     describe 'two times for month range' do
       before do
         @result = Eventual.parse('lunes y martes de diciembre a las 16:00 y 15:00 horas')
-        @dates  = ((DateTime.parse('2010-12-1T15:00')..DateTime.parse('2010-12-31T15:00')).map + (DateTime.parse('2010-12-1T16:00')..DateTime.parse('2010-12-31T16:00')).map).reject{ |day| not [1,2].include?(day.wday) }
+        @dates  = ((DateTime.parse('2010-12-1T15:00')..DateTime.parse('2010-12-31T15:00')).to_a + (DateTime.parse('2010-12-1T16:00')..DateTime.parse('2010-12-31T16:00')).to_a).reject{ |day| not [1,2].include?(day.wday) }
       end
       it_should_behave_like 'correctly parses dates'
       it_should_behave_like 'includes corresponding dates'
@@ -527,9 +523,9 @@ describe Eventual, 'Es' do
       before do
         @result = Eventual.parse('lunes y martes de diciembre a las 16:00, 17:00 y 15:00 horas')
         @dates  = (
-        (DateTime.parse('2010-12-1T15:00')..DateTime.parse('2010-12-31T15:00')).map + 
-        (DateTime.parse('2010-12-1T16:00')..DateTime.parse('2010-12-31T16:00')).map +
-        (DateTime.parse('2010-12-1T17:00')..DateTime.parse('2010-12-31T17:00')).map
+        (DateTime.parse('2010-12-1T15:00')..DateTime.parse('2010-12-31T15:00')).to_a + 
+        (DateTime.parse('2010-12-1T16:00')..DateTime.parse('2010-12-31T16:00')).to_a +
+        (DateTime.parse('2010-12-1T17:00')..DateTime.parse('2010-12-31T17:00')).to_a
         ).reject{ |day| not [1,2].include?(day.wday) }
       end
 
@@ -545,7 +541,7 @@ describe Eventual, 'Es' do
     describe 'range with time as 12 hours am' do
       before do
         @result = Eventual.parse('lunes y martes de diciembre a las 3 am')
-        @dates  = ((DateTime.parse('2010-12-1T03:00')..DateTime.parse('2010-12-31T03:00')).map).reject{ |day| not [1,2].include?(day.wday) }
+        @dates  = ((DateTime.parse('2010-12-1T03:00')..DateTime.parse('2010-12-31T03:00')).to_a).reject{ |day| not [1,2].include?(day.wday) }
       end
       it_should_behave_like 'correctly parses dates'
       it_should_behave_like 'includes corresponding dates'
@@ -559,7 +555,7 @@ describe Eventual, 'Es' do
     describe 'range with time as 12 hours pm' do
       before do
         @result = Eventual.parse('lunes y martes de diciembre a las 3:00 pm')
-        @dates  = ((DateTime.parse('2010-12-1T15:00')..DateTime.parse('2010-12-31T15:00')).map).reject{ |day| not [1,2].include?(day.wday) }
+        @dates  = ((DateTime.parse('2010-12-1T15:00')..DateTime.parse('2010-12-31T15:00')).to_a).reject{ |day| not [1,2].include?(day.wday) }
       end
       it_should_behave_like 'correctly parses dates'
       it_should_behave_like 'includes corresponding dates'
@@ -586,7 +582,7 @@ describe Eventual, 'Es' do
       before do
         @result = Eventual.parse('1 de enero del 2010 de las 15:00 a las 16:00')
         @ranges = [(DateTime.civil 2010, 1, 1, 15)..(DateTime.civil 2010, 1, 1, 16)]
-        @dates  = @ranges.map{ |range| range.map }.flatten
+        @dates  = @ranges.map{ |range| range.to_a }.flatten
       end
       
       it_should_behave_like 'correctly parses time ranges'
@@ -597,7 +593,7 @@ describe Eventual, 'Es' do
       before do
         @result = Eventual.parse('1 de enero del 2010 de las 15:00 a las 16:00 y de las 17:00 a las 19:00')
         @ranges = [(DateTime.civil 2010, 1, 1, 15)..(DateTime.civil 2010, 1, 1, 16), (DateTime.civil 2010, 1, 1, 17)..(DateTime.civil 2010, 1, 1, 19)]
-        @dates  = @ranges.map{ |range| range.map }.flatten
+        @dates  = @ranges.map{ |range| range.to_a }.flatten
       end
       
       it_should_behave_like 'correctly parses time ranges'
@@ -608,7 +604,7 @@ describe Eventual, 'Es' do
       before do
         @result = Eventual.parse('1 de enero del 2010 de las 15:00 a las 16:00, de las 17:00 a las 19:00 y de las 21:00 a las 22:00')
         @ranges = [(DateTime.civil 2010, 1, 1, 15)..(DateTime.civil 2010, 1, 1, 16), (DateTime.civil 2010, 1, 1, 17)..(DateTime.civil 2010, 1, 1, 19), (DateTime.civil 2010, 1, 1, 21)..(DateTime.civil 2010, 1, 1, 22)]
-        @dates  = @ranges.map{ |range| range.map }.flatten
+        @dates  = @ranges.map{ |range| range.to_a }.flatten
       end
       
       it_should_behave_like 'correctly parses time ranges'
@@ -616,12 +612,11 @@ describe Eventual, 'Es' do
     end
   end
 
-
   describe 'Marshal dump' do
     describe "month without year parsing 'marzo'" do
       before do
         @result = Marshal.load Marshal.dump(Eventual.parse('marzo')).gsub('NaturalDates::', 'NaturalDates::Eventual::Es::')
-        @dates  = (Date.parse('2010-3-1')..Date.parse('2010-3-31')).map
+        @dates  = (Date.parse('2010-3-1')..Date.parse('2010-3-31')).to_a
       end
       it_should_behave_like 'correctly parses dates'
       it_should_behave_like 'includes corresponding dates'
@@ -632,7 +627,7 @@ describe Eventual, 'Es' do
     describe "month without year parsing 'marzo'" do
       before do
         @result = Eventual.parse('marzo', :default_year => 2007)
-        @dates  = (Date.parse('2007-3-1')..Date.parse('2007-3-31')).map
+        @dates  = (Date.parse('2007-3-1')..Date.parse('2007-3-31')).to_a
       end
       it_should_behave_like 'correctly parses dates'
       it_should_behave_like 'includes corresponding dates'

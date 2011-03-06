@@ -1,15 +1,20 @@
 # encoding: UTF-8
+$LOAD_PATH.unshift File.dirname(__FILE__)
+
 require 'rubygems'
 require 'treetop'
 require 'date'
 
-require "#{ File.dirname __FILE__ }/eventual/syntax_nodes"
+require "eventual/syntax_nodes"
+
+
+Range.send(:alias_method, :cover?, :include?) unless Range.methods.include? :include?
 
 autoload :EsDatesParser, 'eventual/es'
 
 module Eventual
   # Parses dates specified in natural language and returns an Eventual::Node object
-  #     Eventual.parse( 'del 5 al 7 de junio del 2009' ).map
+  #     Eventual.parse( 'del 5 al 7 de junio del 2009' ).to_a
   #     => [#<DateTime: 4909975/2,0,2299161>, #<DateTime: 4909977/2,0,2299161>, #<DateTime: 4909979/2,0,2299161
   #
   # Options:
